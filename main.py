@@ -1,47 +1,74 @@
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-
-dict_tarefa = []
 def adicionar_tarefa(evente=None):
     titulo = entrada_tarefa.get().strip()
     if titulo:
         tarefa = {
         "titulo": titulo,
-        "data": datetime.now().strftime(r"%d/%m/%Y %H:%M:%S")
+        "data": datetime.now().strftime(r"%d/%m/%Y %H:%M:%S"),
+        "Status" : "Pendente"
         }
-        print("Nova tarefa:", tarefa) # debug no terminal
-        lista_tarefas.insert("", "end", values=[tarefa["titulo"],tarefa["data"]])
-        dict_tarefa.append(tarefa)
-        print("Todas as tarefas:", dict_tarefa)
+        #print("Nova tarefa:", tarefa) #* debug no terminal
+        lista_tarefas.insert("", "end", values=[tarefa["titulo"],tarefa["data"],tarefa["Status"]])
         entrada_tarefa.delete(0, tk.END)
 
+def concluir_tarefa():
+    for item in lista_tarefas.selection():
+        valores = lista_tarefas.item(item,"values")
+        lista_tarefas.item(item, values=(valores[0],valores[1], "Concluída"))
+        lista_tarefas.item(item, tags=("concluida",))
+
+def remove_tarefa():
+    for item in lista_tarefas.selection():
+        lista_tarefas.delete(item)
 #*cria a janela
 janela = tk.Tk()
 janela.title("Lista de Tarefas")
-janela.geometry("400x400")
+janela.geometry("700x400")
 
-#*Cria o titulo (Minha Lista de Tarefas)
-titulo = ttk.Label(janela,text="Minha Lista de Tarefas", font=("Arial",14))
-titulo.pack(pady=10)
+#*Configuração do grid da janela
+janela.grid_rowconfigure(3, weight=1)
+janela.grid_columnconfigure(0, weight=1)
+janela.grid_columnconfigure(1, weight=1)
 
-#*Cria um campo para escrever a tarefa
+#* Cria o titulo (Minha Lista de Tarefas)
+titulo = ttk.Label(janela, text="Minha Lista de Tarefas", font=("Arial", 14))
+titulo.grid(row=0, column=0, columnspan=2, pady=10)
+
+#* Cria um campo para escrever a tarefa
 entrada_tarefa = ttk.Entry(janela, width=40)
-entrada_tarefa.pack(pady=5)
+entrada_tarefa.grid(row=1, column=0, columnspan=2, pady=5,)
 entrada_tarefa.focus()
 
-#*Cria o botao de adicionar
-botao_adicionar = ttk.Button(janela, text="Adicionar", command=adicionar_tarefa)
-botao_adicionar.pack(pady=5)
+#* Frame para os botões
+frame_botoes = ttk.Frame(janela)
+frame_botoes.grid(row=2, column=1, padx=5, pady=5,sticky="w")
 
-frame_lista = ttk.Frame(janela)
-frame_lista.pack(pady=10, fill="both", expand=True)
+#* Cria o botao de concluir
+botao_concluir = ttk.Button(frame_botoes, text="Concluir", command=concluir_tarefa)
+botao_concluir.pack(side="left", padx=(0, 2))
+#* Cria o botao de remove
+botao_remove = ttk.Button(frame_botoes, text="remove", command= remove_tarefa)
+botao_remove.pack(side="left", padx=(2, 0))
 
-#*Coluna Tarefa, Data se quiser adicionar colunas fazer nesse bloco
-colunas = ("tarefa", "data",)
+#* Frame que vai conter a lista
+frame_lista = ttk.Frame(janela,borderwidth=2, relief="solid")
+frame_lista.grid(row=3, column=0, columnspan=2, pady=10, sticky="nsew")
+
+#* Configuração interna do frame
+frame_lista.grid_rowconfigure(0, weight=1)
+frame_lista.grid_columnconfigure(0, weight=1)
+
+#* Configuração intena na coluna
+colunas = ("tarefa", "data", "Status",)
 lista_tarefas = ttk.Treeview(frame_lista,columns=colunas,show="headings",height=8)
-lista_tarefas.heading("tarefa", text="Tarefa")
-lista_tarefas.heading("data", text="Data")
+lista_tarefas.heading("tarefa", text="Tarefa", anchor="w")
+lista_tarefas.heading("data", text="Data",)
+lista_tarefas.heading("Status", text="Status")
+
+#* Configura a tag de concluída
+lista_tarefas.tag_configure("concluida", font=("Arial", 9, "overstrike"))
 
 #* barra de rolagem
 scrollbar = ttk.Scrollbar(frame_lista, orient="vertical", command=lista_tarefas.yview)
